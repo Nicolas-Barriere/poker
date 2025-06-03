@@ -15,7 +15,7 @@ class Player:
         self.in_game = False
         print(f"{self.name} se couche.")
 
-    def get_amount(self):
+    def get_total_coins(self):
         # coins = [noir, rouge, bleu, vert]
         return 100*self.coins[0] + 50*self.coins[1] + 20*self.coins[2] + 10*self.coins[3]
 
