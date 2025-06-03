@@ -126,7 +126,7 @@ class MainWindow(QMainWindow):
             w.setStyleSheet("border: 2px solid green;")
             h_layout = QHBoxLayout(w)
             h_layout.setSpacing(4)
-            h_layout.setContentsMargins(0, 0, 0, 0)
+            h_layout.setContentsMargins(8, 0, 8, 0)  # Augmente la marge latérale
             for idx, (value, img_name) in enumerate(jetons):
                 count = jetons_list[idx] if idx < len(jetons_list) else 0
                 if count == 0:
@@ -137,6 +137,7 @@ class MainWindow(QMainWindow):
                 v_layout = QVBoxLayout(pile)
                 v_layout.setSpacing(0)
                 v_layout.setContentsMargins(0, 0, 0, 0)
+                v_layout.addStretch()
                 for _ in range(count):
                     lbl = QLabel()
                     pix = QPixmap(
@@ -147,9 +148,8 @@ class MainWindow(QMainWindow):
                     )
                     lbl.setPixmap(pix)
                     lbl.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-                    v_layout.addWidget(lbl, alignment=Qt.AlignTop)
-                v_layout.addStretch()
-                h_layout.addWidget(pile)
+                    v_layout.addWidget(lbl, alignment=Qt.AlignBottom)
+                h_layout.addWidget(pile, alignment=Qt.AlignBottom)
             h_layout.addStretch()
             return w
 
@@ -174,13 +174,28 @@ class MainWindow(QMainWindow):
         grid.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding), 1, 1, 2, 1)
 
         # Joueur de gauche (ligne 3)
-        grid.addWidget(hand_widget(player_hands[1]), 3, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
-        grid.addWidget(big_label(self.game.players[1].name), 3, 0, alignment=Qt.AlignLeft | Qt.AlignBottom)
-        grid.addWidget(jetons_widget(self.game.players[1].coins), 3, 0, alignment=Qt.AlignLeft | Qt.AlignTop)
+        left_player_widget = QWidget()
+        left_player_widget.setStyleSheet("border: 2px solid orange;")
+        left_layout = QVBoxLayout(left_player_widget)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(6)
+        left_layout.addWidget(big_label(self.game.players[1].name), alignment=Qt.AlignLeft)
+        left_layout.addWidget(hand_widget(player_hands[1]), alignment=Qt.AlignLeft)
+        left_layout.addWidget(jetons_widget(self.game.players[1].coins), alignment=Qt.AlignLeft | Qt.AlignBottom)
+        left_layout.addStretch()
+        grid.addWidget(left_player_widget, 3, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
+
         # Joueur de droite (ligne 3)
-        grid.addWidget(hand_widget(player_hands[3]), 3, 2, alignment=Qt.AlignRight | Qt.AlignVCenter)
-        grid.addWidget(big_label(self.game.players[3].name), 3, 2, alignment=Qt.AlignRight | Qt.AlignBottom)
-        grid.addWidget(jetons_widget(self.game.players[3].coins), 3, 2, alignment=Qt.AlignRight | Qt.AlignTop)
+        right_player_widget = QWidget()
+        right_player_widget.setStyleSheet("border: 2px solid cyan;")
+        right_layout = QVBoxLayout(right_player_widget)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(6)
+        right_layout.addWidget(big_label(self.game.players[3].name), alignment=Qt.AlignRight)
+        right_layout.addWidget(hand_widget(player_hands[3]), alignment=Qt.AlignRight)
+        right_layout.addWidget(jetons_widget(self.game.players[3].coins), alignment=Qt.AlignRight | Qt.AlignBottom)
+        right_layout.addStretch()
+        grid.addWidget(right_player_widget, 3, 2, alignment=Qt.AlignRight | Qt.AlignVCenter)
         # Centre : cartes communes et deck (ligne 3)
         center_widget = QWidget()
         center_widget.setStyleSheet("border: 2px solid black;")
