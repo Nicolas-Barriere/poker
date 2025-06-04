@@ -25,27 +25,21 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         central_widget = BackgroundWidget("assets/bg.jpg")
-        #central_widget.setStyleSheet("border: 3px solid #000000;")  # Noir pour central widget
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
 
         grid = QGridLayout()
-        # --- Correction pour que la grille prenne tout l'espace central ---
         grid_container = QWidget()
-        #grid_container.setStyleSheet("border: 3px solid #FFA500;")  # Orange pour grid container
         grid_layout = QVBoxLayout(grid_container)
         grid_layout.setContentsMargins(0, 0, 0, 0)
         grid_layout.setSpacing(0)
         grid_layout.addLayout(grid)
         main_layout.addWidget(grid_container, stretch=1)
         main_layout.setContentsMargins(4, 4, 4, 4)  # Réduction des marges du layout principal
-        # --- Fin correction ---
 
         cards_dir = os.path.join(os.path.dirname(__file__), "assets/cards")
 
-        # Utiliser les vraies mains des joueurs
         player_hands = [p.cards for p in self.game.players]
-        # Utiliser les vraies cartes communes tirées
         community_cards = self.game.table.community_cards
         deck_img = "back.png"
 
@@ -92,8 +86,8 @@ class MainWindow(QMainWindow):
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(20)
         top_layout.addWidget(big_label(self.game.players[2].name))
+        
         top_layout.addWidget(hand_widget(player_hands[2]))
-        jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
         jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
         jetons_top_box_w = QWidget()
         jetons_top_box_w.setMinimumWidth(220)
@@ -138,7 +132,6 @@ class MainWindow(QMainWindow):
 
         # Joueur de gauche (ligne 3)
         left_player_widget = QWidget()
-        #left_player_widget.setStyleSheet(player_border)  # Bordure turquoise pour joueur de gauche
         left_layout = QVBoxLayout(left_player_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(3)  # Réduction de l'espacement (6 -> 3)
@@ -153,7 +146,6 @@ class MainWindow(QMainWindow):
         betzone_left_box.addWidget(betzone_left)
         betzone_left_box_w = QWidget()
         betzone_left_box_w.setLayout(betzone_left_box)
-        #betzone_left_box_w.setStyleSheet("border: 2px solid #8B4513;")  # Bordure marron pour conteneur betzone
         left_layout.addWidget(betzone_left_box_w, alignment=Qt.AlignLeft)
         
         # Ajout des jetons au milieu avec JetonsContainerWidget
