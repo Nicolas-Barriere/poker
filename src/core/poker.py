@@ -10,6 +10,7 @@ class Player:
         self.coins = coins
         self.in_game = True
         self.current_bet = 0
+        self.bet_coins = [0,0,0,0]  # [noir, rouge, bleu, vert] pour la mise temporaire
 
     def fold(self):
         self.in_game = False
