@@ -11,6 +11,10 @@ from src.gui.widgets.jeton_pile_widget import JetonPileWidget
 from src.gui.widgets.pot_widget import PotWidget
 from src.gui.widgets.bet_zone_widget import BetZoneWidget
 from src.core.exceptions import InconsistentBetsError
+from src.gui.widgets.top_player_widget import TopPlayerWidget
+from src.gui.widgets.left_player_widget import LeftPlayerWidget
+from src.gui.widgets.right_player_widget import RightPlayerWidget
+from src.gui.widgets.bottom_player_widget import BottomPlayerWidget
 
 
 class MainWindow(QMainWindow):
@@ -81,173 +85,46 @@ class MainWindow(QMainWindow):
             label.setAlignment(Qt.AlignCenter)
             return label
 
-        # Joueur du haut
-        top_player_widget = QWidget()
-        top_layout = QHBoxLayout(top_player_widget)
-        top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.setSpacing(20)
-        top_layout.addWidget(big_label(self.game.players[2].name))
         
-        if self.game.players[2].in_game:
-            top_layout.addWidget(hand_widget(player_hands[2]))
-        else:
-            top_layout.addWidget(QLabel("(Couché)"))
-        jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
-        jetons_top_box_w = QWidget()
-        jetons_top_box_w.setMinimumWidth(220)
-        jetons_top_box_w.setMinimumHeight(150)
-
-        # Layout avec contenu
-        container_layout = QVBoxLayout(jetons_top_box_w)
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.setSpacing(0)
-        container_layout.addWidget(jetons_top)
-        
-        montant_fold_w = QWidget(jetons_top)
-        montant_fold_layout = QHBoxLayout(montant_fold_w)
-        montant_fold_layout.setContentsMargins(5, 5, 5, 5)
-        montant_fold_layout.setSpacing(8)
-
-        montant_label = QLabel(f"{self.game.players[2].get_total_coins()} €")
-        montant_label.setStyleSheet("background-color: rgba(255,255,255,0.7); border: 1px solid black; font-weight: bold;")
-        montant_label.setAlignment(Qt.AlignCenter)
-        montant_label.setFixedHeight(25)
-        montant_label.setFixedWidth(80)
-
-        fold_btn_top = QPushButton("Fold")
-        fold_btn_top.setStyleSheet("background-color: rgba(255,255,255,0.7); font-size: 14px; padding: 2px 10px;")
-        fold_btn_top.clicked.connect(lambda: self.fold_player(2))
-        fold_btn_top.setFixedHeight(25)
-        fold_btn_top.setFixedWidth(80)
-
-
-        montant_fold_layout.addWidget(montant_label)
-        montant_fold_layout.addWidget(fold_btn_top)
-
-        # Positionne le widget en overlay sur le widget des jetons
-        montant_fold_w.setGeometry(5, 5, 170, 35)
-        montant_fold_w.raise_()
-
-        # Ajout de la zone de mise à côté des jetons
-        betzone_top_box = QVBoxLayout()
-        betzone_top_box.setContentsMargins(0,0,0,0)
-        betzone_top_box.setSpacing(2)
-        betzone_top_box.addWidget(QLabel("Mise", alignment=Qt.AlignHCenter))
-        betzone_top = BetZoneWidget(2, main_window=self)
-        betzone_top_box.addWidget(betzone_top)
-        betzone_top_box_w = QWidget()
-        betzone_top_box_w.setLayout(betzone_top_box)
-        #betzone_top_box_w.setStyleSheet("border: 2px solid #8B4513;")  # Bordure marron pour conteneur betzone
-        # Layout horizontal pour jetons + zone de mise
-        jetons_betzone_top_hbox = QHBoxLayout()
-        jetons_betzone_top_hbox.setContentsMargins(0,0,0,0)
-        jetons_betzone_top_hbox.setSpacing(8)
-        jetons_betzone_top_hbox.addWidget(jetons_top_box_w)
-        jetons_betzone_top_hbox.addWidget(betzone_top_box_w)
-        jetons_betzone_top_hbox.addStretch()
-        jetons_betzone_top_w = QWidget()
-        jetons_betzone_top_w.setLayout(jetons_betzone_top_hbox)
-        #jetons_betzone_top_w.setStyleSheet("border: 2px solid #FF69B4;")  # Bordure rose pour conteneur jetons+betzone
-        top_layout.addWidget(jetons_betzone_top_w)
+        top_player_widget = TopPlayerWidget(
+            self.game.players[2],
+            joueur_idx=2,
+            main_window=self,
+            hand_widget=hand_widget
+        )
 
         grid.addWidget(top_player_widget, 0, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         # Ajoute un spacer vertical en haut pour centrer le centre et les joueurs de côté
         grid.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding), 1, 1, 2, 1)
 
-        # Joueur de gauche (ligne 3)
-        left_player_widget = QWidget()
-        left_layout = QVBoxLayout(left_player_widget)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setSpacing(3)  # Réduction de l'espacement (6 -> 3)
-        left_layout.addWidget(big_label(self.game.players[1].name), alignment=Qt.AlignLeft)
         
-        # Ajout de la zone de mise en haut
-        betzone_left_box = QVBoxLayout()
-        betzone_left_box.setContentsMargins(0,0,0,0)
-        betzone_left_box.setSpacing(2)
-        betzone_left_box.addWidget(QLabel("Mise", alignment=Qt.AlignHCenter))
-        betzone_left = BetZoneWidget(1, main_window=self)
-        betzone_left_box.addWidget(betzone_left)
-        betzone_left_box_w = QWidget()
-        betzone_left_box_w.setLayout(betzone_left_box)
-        left_layout.addWidget(betzone_left_box_w, alignment=Qt.AlignLeft)
-        
-        # Ajout des jetons au milieu avec JetonsContainerWidget
-        jetons_left = JetonsContainerWidget(self.game.players[1].coins, joueur_idx=1, main_window=self)
-        jetons_left_box = QVBoxLayout()
-        jetons_left_box.setContentsMargins(0,0,0,0)
-        jetons_left_box.setSpacing(0)  # Réduit l'espacement à 0 (au lieu de 2)
-        jetons_left_box.addWidget(jetons_left)
-        
-        # Ajouter le montant directement sur le widget des jetons
-        montant_label = QLabel(f"{self.game.players[1].get_total_coins()} €", jetons_left)
-        montant_label.setStyleSheet("background-color: rgba(255,255,255,0.7); border: 1px solid black; font-weight: bold;")
-        montant_label.setGeometry(5, 5, 80, 25)
-        montant_label.setAlignment(Qt.AlignCenter)
-
-        jetons_left_box_w = QWidget()
-        jetons_left_box_w.setLayout(jetons_left_box)
-        #jetons_left_box_w.setStyleSheet("border: 2px solid #32CD32;")  # Bordure vert lime pour conteneur jetons
-        left_layout.addWidget(jetons_left_box_w, alignment=Qt.AlignLeft)
-        
-        # Ajout des cartes en bas
-        left_layout.addWidget(hand_widget(player_hands[1]), alignment=Qt.AlignLeft | Qt.AlignBottom)
-        left_layout.addStretch()
+        left_player_widget = LeftPlayerWidget(
+            self.game.players[1],
+            joueur_idx=1,
+            main_window=self,
+            hand_widget=hand_widget
+        )
         grid.addWidget(left_player_widget, 3, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
 
-        # Joueur de droite (ligne 3)
-        right_player_widget = QWidget()
-        #right_player_widget.setStyleSheet(player_border)  # Bordure turquoise pour joueur de droite
-        right_layout = QVBoxLayout(right_player_widget)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(3)  # Réduction de l'espacement (6 -> 3)
-        right_layout.addWidget(big_label(self.game.players[3].name), alignment=Qt.AlignRight)
         
-        # Ajout de la zone de mise en haut
-        betzone_right_box = QVBoxLayout()
-        betzone_right_box.setContentsMargins(0,0,0,0)
-        betzone_right_box.setSpacing(2)
-        betzone_right_box.addWidget(QLabel("Mise", alignment=Qt.AlignHCenter))
-        betzone_right = BetZoneWidget(3, main_window=self)
-        betzone_right_box.addWidget(betzone_right)
-        betzone_right_box_w = QWidget()
-        betzone_right_box_w.setLayout(betzone_right_box)
-        #betzone_right_box_w.setStyleSheet("border: 2px solid #8B4513;")  # Bordure marron pour conteneur betzone
-        right_layout.addWidget(betzone_right_box_w, alignment=Qt.AlignRight)
-        
-        # Ajout des jetons au milieu avec JetonsContainerWidget
-        jetons_right = JetonsContainerWidget(self.game.players[3].coins, joueur_idx=3, main_window=self)
-        jetons_right_box = QVBoxLayout()
-        jetons_right_box.setContentsMargins(0,0,0,0)
-        jetons_right_box.setSpacing(0)  # Réduit l'espacement à 0 (au lieu de 2)
-        jetons_right_box.addWidget(jetons_right)
-        
-        # Ajouter le montant directement sur le widget des jetons
-        montant_label = QLabel(f"{self.game.players[3].get_total_coins()} €", jetons_right)
-        montant_label.setStyleSheet("background-color: rgba(255,255,255,0.7); border: 1px solid black; font-weight: bold;")
-        montant_label.setGeometry(5, 5, 80, 25)
-        montant_label.setAlignment(Qt.AlignCenter)
+        right_player_widget = RightPlayerWidget(
+            self.game.players[3],
+            joueur_idx=3,
+            main_window=self,
+            hand_widget=hand_widget
+        )
 
-        jetons_right_box_w = QWidget()
-        jetons_right_box_w.setLayout(jetons_right_box)
-        #jetons_right_box_w.setStyleSheet("border: 2px solid #32CD32;")  # Bordure vert lime pour conteneur jetons
-        right_layout.addWidget(jetons_right_box_w, alignment=Qt.AlignRight)
-        
-        # Ajout des cartes en bas
-        right_layout.addWidget(hand_widget(player_hands[3]), alignment=Qt.AlignRight | Qt.AlignBottom)
-        right_layout.addStretch()
         grid.addWidget(right_player_widget, 3, 2, alignment=Qt.AlignRight | Qt.AlignVCenter)
+        
         # Centre : cartes communes et deck (ligne 3)
         center_widget = QWidget()
-        #center_widget.setStyleSheet(center_border)  # Bordure orange pour le centre
         center_layout = QVBoxLayout(center_widget)
         comm_w = QWidget()
         comm_l = QHBoxLayout(comm_w)
         for c in community_cards:
             comm_l.addWidget(card_label(c))
         center_layout.addWidget(comm_w)
-        # Deck et pot côte à côte
         deck_pot_w = QWidget()
         deck_pot_l = QHBoxLayout(deck_pot_w)
         deck_lbl = card_label(deck_img)
@@ -258,57 +135,14 @@ class MainWindow(QMainWindow):
         center_layout.addWidget(deck_pot_w, alignment=Qt.AlignCenter)
         grid.addWidget(center_widget, 3, 1, alignment=Qt.AlignVCenter | Qt.AlignHCenter)
         
-        # Pas de spacer entre le centre et le joueur du bas pour maximiser l'espace
-        # Joueur du bas (ligne 4)
-        bottom_player_widget = QWidget()
-        #bottom_player_widget.setStyleSheet(player_border)  # Bordure turquoise pour joueur du bas
-        bottom_layout = QHBoxLayout(bottom_player_widget)
-        bottom_layout.setContentsMargins(0, 0, 0, 0)
-        bottom_layout.setSpacing(10)
-        bottom_layout.addWidget(big_label(self.game.players[0].name))
-        bottom_layout.addWidget(hand_widget(player_hands[0]))
         
-        # Utilisation de JetonsContainerWidget au lieu de jetons_widget
-        # Container directement intégré avec montant placé en superposition
-        jetons_bottom = JetonsContainerWidget(self.game.players[0].coins, joueur_idx=0, main_window=self)
-        # Créer un QWidget pour encadrer le contenu
-        jetons_bottom_box_w = QWidget()
-        jetons_bottom_box_w.setMinimumWidth(220)
-        jetons_bottom_box_w.setMinimumHeight(150)
-        #jetons_bottom_box_w.setStyleSheet("border: 4px solid #FF00FF;") # Bordure magenta visible
-        
-        # Layout avec contenu
-        container_layout = QVBoxLayout(jetons_bottom_box_w)
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.setSpacing(0)
-        container_layout.addWidget(jetons_bottom)
-        
-        # Ajouter le montant directement sur le widget des jetons
-        montant_label = QLabel(f"{self.game.players[0].get_total_coins()} €", jetons_bottom)
-        montant_label.setStyleSheet("background-color: rgba(255,255,255,0.7); border: 1px solid black; font-weight: bold;")
-        montant_label.setGeometry(5, 5, 80, 25)
-        montant_label.setAlignment(Qt.AlignCenter)
-        # Ajout de la zone de mise à côté des jetons
-        betzone_bottom_box = QVBoxLayout()
-        betzone_bottom_box.setContentsMargins(0,0,0,0)
-        betzone_bottom_box.setSpacing(2)
-        betzone_bottom_box.addWidget(QLabel("Mise", alignment=Qt.AlignHCenter))
-        betzone_bottom = BetZoneWidget(0, main_window=self)
-        betzone_bottom_box.addWidget(betzone_bottom)
-        betzone_bottom_box_w = QWidget()
-        betzone_bottom_box_w.setLayout(betzone_bottom_box)
-        #betzone_bottom_box_w.setStyleSheet("border: 2px solid #8B4513;")  # Bordure marron pour conteneur betzone
-        # Layout horizontal pour jetons + zone de mise
-        jetons_betzone_bottom_hbox = QHBoxLayout()
-        jetons_betzone_bottom_hbox.setContentsMargins(0,0,0,0)
-        jetons_betzone_bottom_hbox.setSpacing(4)  # Réduction de l'espacement (8 -> 4)
-        jetons_betzone_bottom_hbox.addWidget(jetons_bottom_box_w)
-        jetons_betzone_bottom_hbox.addWidget(betzone_bottom_box_w)
-        jetons_betzone_bottom_hbox.addStretch()
-        jetons_betzone_bottom_w = QWidget()
-        jetons_betzone_bottom_w.setLayout(jetons_betzone_bottom_hbox)
-        #jetons_betzone_bottom_w.setStyleSheet("border: 2px solid #FF69B4;")  # Bordure rose pour conteneur jetons+betzone
-        bottom_layout.addWidget(jetons_betzone_bottom_w)
+        bottom_player_widget = BottomPlayerWidget(
+            self.game.players[0],
+            joueur_idx=0,
+            main_window=self,
+            hand_widget=hand_widget
+        )
+
         # Joueur du bas repositionné à la ligne 4 pour meilleur équilibre visuel
         grid.addWidget(bottom_player_widget, 4, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)  # Aligné en haut plutôt qu'au centre
         # Spacer réduit SOUS le joueur du bas
