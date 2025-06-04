@@ -25,6 +25,7 @@ class JetonsContainerWidget(QWidget):
         # Pour le drag and drop
         self.setMouseTracking(True)
         self.drag_start_pos = None
+        self.setAcceptDrops(True)
         self.recouvrement_drag = 40  # Même valeur que dans JetonPileWidget pour une expérience cohérente
 
     def paintEvent(self, event):
@@ -67,6 +68,24 @@ class JetonsContainerWidget(QWidget):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.drag_start_pos = event.pos()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('application/x-jeton-bet'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasFormat('application/x-jeton-bet'):
+            data = event.mimeData().data('application/x-jeton-bet').data().decode()
+            couleur_idx, nb, joueur_idx_src = map(int, data.split(':'))
+            # On retire les jetons de bet_coins et on les remet dans coins
+            joueur = self.main_window.game.players[self.joueur_idx]
+            if joueur.bet_coins[couleur_idx] >= nb:
+                joueur.bet_coins[couleur_idx] -= nb
+                joueur.coins[couleur_idx] += nb
+                self.main_window.initUI()
+            event.acceptProposedAction()
 
     def mouseMoveEvent(self, event):
         if self.drag_start_pos and (event.buttons() & Qt.LeftButton):
