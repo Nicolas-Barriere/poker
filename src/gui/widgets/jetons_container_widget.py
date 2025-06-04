@@ -10,7 +10,6 @@ class JetonsContainerWidget(QWidget):
         self.main_window = main_window
         self.jetons = jetons_list
         self.setMinimumSize(220, 120)  # Même taille que BetZoneWidget
-        self.setStyleSheet("border: 5px solid #0000FF; background: rgba(255, 255, 255, 0.2);") # Bordure plus épaisse et plus visible
         # Important: l'ordre de couleurs doit correspondre à l'ordre des jetons dans la liste
         self.couleurs = ["noir", "rouge", "bleu", "vert"]
         # Important: l'ordre des jetons doit correspondre à l'ordre dans game.players[].coins

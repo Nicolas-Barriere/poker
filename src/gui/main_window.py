@@ -10,6 +10,7 @@ from src.gui.widgets.background_widget import BackgroundWidget
 from src.gui.widgets.jeton_pile_widget import JetonPileWidget
 from src.gui.widgets.pot_widget import PotWidget
 from src.gui.widgets.bet_zone_widget import BetZoneWidget
+from src.core.exceptions import InconsistentBetsError
 
 
 class MainWindow(QMainWindow):
@@ -87,7 +88,10 @@ class MainWindow(QMainWindow):
         top_layout.setSpacing(20)
         top_layout.addWidget(big_label(self.game.players[2].name))
         
-        top_layout.addWidget(hand_widget(player_hands[2]))
+        if self.game.players[2].in_game:
+            top_layout.addWidget(hand_widget(player_hands[2]))
+        else:
+            top_layout.addWidget(QLabel("(Couché)"))
         jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
         jetons_top_box_w = QWidget()
         jetons_top_box_w.setMinimumWidth(220)
@@ -99,11 +103,31 @@ class MainWindow(QMainWindow):
         container_layout.setSpacing(0)
         container_layout.addWidget(jetons_top)
         
-        # Ajouter le montant directement sur le widget des jetons
-        montant_label = QLabel(f"{self.game.players[2].get_total_coins()} €", jetons_top)
+        montant_fold_w = QWidget(jetons_top)
+        montant_fold_layout = QHBoxLayout(montant_fold_w)
+        montant_fold_layout.setContentsMargins(5, 5, 5, 5)
+        montant_fold_layout.setSpacing(8)
+
+        montant_label = QLabel(f"{self.game.players[2].get_total_coins()} €")
         montant_label.setStyleSheet("background-color: rgba(255,255,255,0.7); border: 1px solid black; font-weight: bold;")
-        montant_label.setGeometry(5, 5, 80, 25)
         montant_label.setAlignment(Qt.AlignCenter)
+        montant_label.setFixedHeight(25)
+        montant_label.setFixedWidth(80)
+
+        fold_btn_top = QPushButton("Fold")
+        fold_btn_top.setStyleSheet("background-color: rgba(255,255,255,0.7); font-size: 14px; padding: 2px 10px;")
+        fold_btn_top.clicked.connect(lambda: self.fold_player(2))
+        fold_btn_top.setFixedHeight(25)
+        fold_btn_top.setFixedWidth(80)
+
+
+        montant_fold_layout.addWidget(montant_label)
+        montant_fold_layout.addWidget(fold_btn_top)
+
+        # Positionne le widget en overlay sur le widget des jetons
+        montant_fold_w.setGeometry(5, 5, 170, 35)
+        montant_fold_w.raise_()
+
         # Ajout de la zone de mise à côté des jetons
         betzone_top_box = QVBoxLayout()
         betzone_top_box.setContentsMargins(0,0,0,0)
@@ -125,6 +149,7 @@ class MainWindow(QMainWindow):
         jetons_betzone_top_w.setLayout(jetons_betzone_top_hbox)
         #jetons_betzone_top_w.setStyleSheet("border: 2px solid #FF69B4;")  # Bordure rose pour conteneur jetons+betzone
         top_layout.addWidget(jetons_betzone_top_w)
+
         grid.addWidget(top_player_widget, 0, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         # Ajoute un spacer vertical en haut pour centrer le centre et les joueurs de côté
@@ -297,6 +322,11 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         event.accept()
 
+    def fold_player(self, joueur_idx):
+        joueur = self.game.players[joueur_idx]
+        joueur.fold()
+        self.initUI()
+
     def miser_jetons(self, couleur, nb, joueur_idx=None):
         # Trouver le joueur source (par défaut joueur du bas)
         if joueur_idx is None:
@@ -380,6 +410,15 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def valider_mises(self):
+        try:
+            self.game.validate_bets()
+        except InconsistentBetsError as e:
+            QMessageBox.warning(self, "Erreur de mise", str(e))
+            return
+        self.transfer_bets_to_pot()
+
+
+    def transfer_bets_to_pot(self):
         # Transfère toutes les mises (bet_coins) dans le pot
         for idx, joueur in enumerate(self.game.players):
             for color_idx in range(4):
@@ -391,6 +430,9 @@ class MainWindow(QMainWindow):
                         self.game.pot.amount = [0,0,0,0]
                         self.game.pot.amount[color_idx] = nb
                     joueur.bet_coins[color_idx] = 0
+        self.next_round()
+
+    def next_round(self):
         # Retourne une carte commune si possible, sinon compare les mains
         nb_community = len(self.game.table.community_cards)
         if nb_community < 5:

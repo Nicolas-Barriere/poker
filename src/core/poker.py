@@ -1,7 +1,7 @@
 # filepath: /poker-gui/poker-gui/src/core/poker.py
 import random
 from treys import Card, Evaluator
-
+from src.core.exceptions import PokerError, InconsistentBetsError, InvalidBetError
 
 class Player:
     def __init__(self, name, coins=[4, 6, 8, 10]):
@@ -211,6 +211,23 @@ class Game:
         print(
             f"Small blind: {sb_player.name} ({small_blind}) | Big blind: {bb_player.name} ({big_blind})"
         )
+
+    def validate_bets(self):
+        """Vérifie que tous les joueurs actifs ont la même mise (hors all-in/fold)."""
+        active_bets = [
+            p.current_bet
+            for p in self.active_players
+            if p.in_game and sum(p.coins) > 0
+        ]
+        if not active_bets:
+            return True  # Personne en jeu
+        max_bet = max(active_bets)
+        for p in self.active_players:
+            if p.in_game and sum(p.coins) > 0 and p.current_bet != max_bet:
+                raise InconsistentBetsError(
+                    f"{p.name} n'a pas la même mise ({p.current_bet}) que le maximum ({max_bet})"
+                )
+        return True
 
     def betting_round(self):
         to_call = self.current_bet
