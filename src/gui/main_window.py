@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow,QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLabel,QGridLayout,QSizePolicy,QSpacerItem,QMessageBox,QPushButton)
-from PyQt5.QtCore import Qt, QMimeData, QSize
-from PyQt5.QtGui import QPixmap, QPainter, QDrag, QPen, QColor
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
