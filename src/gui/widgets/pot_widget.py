@@ -43,7 +43,7 @@ class PotWidget(QWidget):
             if count == 0:
                 x += espace_colonne
                 continue
-            pix = QPixmap(os.path.join(os.path.dirname(__file__), "assets", img_name)).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            pix = QPixmap(os.path.join(os.path.dirname(__file__), "../assets", img_name)).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             # Calcul du nombre de colonnes nécessaires pour cette couleur
             nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
             for col in range(nb_colonnes):

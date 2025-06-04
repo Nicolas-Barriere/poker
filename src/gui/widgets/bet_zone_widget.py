@@ -38,7 +38,7 @@ class BetZoneWidget(QWidget):
                 if count == 0:
                     x += col_spacing
                     continue
-                pix = QPixmap(os.path.join(os.path.dirname(__file__), "assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                pix = QPixmap(os.path.join(os.path.dirname(__file__), "../assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 # Calcul du nombre de colonnes nécessaires pour cette couleur
                 max_jetons_par_col = max(1, (self.height() - 24) // recouvrement)
                 nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
