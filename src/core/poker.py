@@ -18,7 +18,7 @@ class Player:
 
     def get_total_coins(self):
         # coins = [noir, rouge, bleu, vert]
-        return 100*self.coins[0] + 50*self.coins[1] + 20*self.coins[2] + 10*self.coins[3]
+        return 10*self.coins[0] + 20*self.coins[1] + 50*self.coins[2] + 100*self.coins[3]
 
     def bet(self, jetons):
         # jetons = [noir, rouge, bleu, vert]
@@ -26,7 +26,7 @@ class Player:
             raise ValueError(f"{self.name} n'a pas assez de jetons pour miser {jetons}.")
         for i in range(4):
             self.coins[i] -= jetons[i]
-        self.current_bet += 100*jetons[0] + 50*jetons[1] + 20*jetons[2] + 10*jetons[3]
+        self.current_bet += 10*jetons[0] + 20*jetons[1] + 50*jetons[2] + 100*jetons[3]
         print(f"{self.name} mise {jetons} => reste: {self.coins}")
 
     def receive_jetons(self, jetons):
@@ -169,7 +169,7 @@ class Dealer:
 
 
 class Game:
-    def __init__(self, player_names, starting_coins=[4,6,8,10]):
+    def __init__(self, player_names, starting_coins=[10,8,6,4]):
         self.players = [Player(name, starting_coins[:]) for name in player_names]
         self.deck = Deck()
         self.table = Table()
@@ -197,17 +197,17 @@ class Game:
             card = self.deck.draw()
             self.table.community_cards.append(card)
 
-    def set_blinds(self, small_blind=[0,0,0,1], big_blind=[0,0,0,2]):
+    def set_blinds(self, small_blind=[1,0,0,0], big_blind=[2,0,0,0]):
         sb_pos = self.dealer.position % len(self.active_players)
         bb_pos = (self.dealer.position + 1) % len(self.active_players)
         sb_player = self.active_players[sb_pos]
         bb_player = self.active_players[bb_pos]
         # On suppose que small_blind et big_blind sont des listes de jetons
-        sb_player.bet(10*small_blind[3] + 20*small_blind[2] + 50*small_blind[1] + 100*small_blind[0])
-        bb_player.bet(10*big_blind[3] + 20*big_blind[2] + 50*big_blind[1] + 100*big_blind[0])
+        sb_player.bet(100*small_blind[3] + 50*small_blind[2] + 20*small_blind[1] + 10*small_blind[0])
+        bb_player.bet(100*big_blind[3] + 50*big_blind[2] + 20*big_blind[1] + 10*big_blind[0])
         self.pot.add(small_blind)
         self.pot.add(big_blind)
-        self.current_bet = 10*big_blind[3] + 20*big_blind[2] + 50*big_blind[1] + 100*big_blind[0]
+        self.current_bet = 100*big_blind[3] + 50*big_blind[2] + 20*big_blind[1] + 10*big_blind[0]
         print(
             f"Small blind: {sb_player.name} ({small_blind}) | Big blind: {bb_player.name} ({big_blind})"
         )
