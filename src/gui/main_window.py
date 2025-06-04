@@ -6,244 +6,10 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.core.poker import Game
 from src.gui.widgets.jetons_container_widget import JetonsContainerWidget
-
-
-class BackgroundWidget(QWidget):
-    def __init__(self, image_path, parent=None):
-        super().__init__(parent)
-        self.image_path = image_path
-        self.pixmap = QPixmap(self.image_path)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        if not self.pixmap.isNull():
-            painter.drawPixmap(self.rect(), self.pixmap)
-            painter.setOpacity(0.25)  # Ajuste l'opacité pour plus ou moins de lumière
-            painter.fillRect(self.rect(), Qt.white)
-            painter.setOpacity(1.0)
-        super().paintEvent(event)
-
-
-class JetonPileWidget(QWidget):
-    def __init__(self, couleur, count, img_path, joueur_idx=None, parent=None):
-        super().__init__(parent)
-        self.couleur = couleur  # ex: 'noir', 'rouge', ...
-        self.count = count
-        self.img_path = img_path
-        self.joueur_idx = joueur_idx  # index du joueur propriétaire de la pile
-        self.setFixedWidth(56)
-        self.setAcceptDrops(False)
-        self.setMouseTracking(True)
-        self.drag_start_pos = None
-        self.drag_count = 0
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        pix = QPixmap(self.img_path).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        jeton_height = 48
-        recouvrement = 40
-        pile_height = jeton_height + (self.count - 1) * (jeton_height - recouvrement) if self.count > 0 else 0
-        base_y = self.height() - pile_height
-        for i in range(self.count):
-            y = base_y + i * (jeton_height - recouvrement)
-            painter.drawPixmap(4, y, pix)
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.drag_start_pos = event.pos()
-
-    def mouseMoveEvent(self, event):
-        if self.drag_start_pos and (event.buttons() & Qt.LeftButton):
-            jeton_height = 48
-            recouvrement = 40
-            pile_height = jeton_height + (self.count - 1) * (jeton_height - recouvrement) if self.count > 0 else 0
-            base_y = self.height() - pile_height
-            y = event.pos().y()
-            # Correction : plus on clique bas, plus on prend de jetons
-            if y < base_y:
-                jetons_a_prendre = 1
-            else:
-                rel_y = y - base_y
-                jetons_a_prendre = min(self.count, 1 + int(rel_y // (jeton_height - recouvrement)))
-            if jetons_a_prendre > 0:
-                mime = QMimeData()
-                mime.setData('application/x-jeton', f"{self.couleur}:{jetons_a_prendre}:{self.joueur_idx}".encode())
-                drag = QDrag(self)
-                drag.setMimeData(mime)
-                # Pixmap pour le drag : une pile de jetons
-                pix = QPixmap(self.img_path).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                pile_pix = QPixmap(56, 48 + (jetons_a_prendre-1)*8)
-                pile_pix.fill(Qt.transparent)
-                painter = QPainter(pile_pix)
-                for i in range(jetons_a_prendre):
-                    painter.drawPixmap(4, pile_pix.height()-48-(i*8), pix)
-                painter.end()
-                drag.setPixmap(pile_pix)
-                drag.setHotSpot(event.pos())
-                drag.exec_(Qt.MoveAction)
-            self.drag_start_pos = None
-
-    def sizeHint(self):
-        jeton_height = 48
-        recouvrement = 32
-        pile_height = jeton_height + (self.count - 1) * (jeton_height - recouvrement) if self.count > 0 else jeton_height
-        return QSize(56, pile_height)
-
-    def setCount(self, count):
-        self.count = count
-        jeton_height = 48
-        recouvrement = 32
-        pile_height = jeton_height + (self.count - 1) * (jeton_height - recouvrement) if self.count > 0 else jeton_height
-        self.setMinimumHeight(pile_height)
-        self.update()
-
-    def resizeEvent(self, event):
-        jeton_height = 48
-        recouvrement = 32
-        pile_height = jeton_height + (self.count - 1) * (jeton_height - recouvrement) if self.count > 0 else jeton_height
-        self.setMinimumHeight(pile_height)
-        super().resizeEvent(event)
-
-
-class PotWidget(QWidget):
-    def __init__(self, main_window=None, parent=None):
-        super().__init__(parent)
-        self.setAcceptDrops(False)  # Désactive le drop sur le pot
-        self.setMinimumSize(200, 60)  # Hauteur réduite (80 -> 60)
-        self.setStyleSheet("border: 2px solid #444; background: #eee;")
-        self.jetons = [0, 0, 0, 0]  # [noir, rouge, bleu, vert]
-        self.main_window = main_window  # pour callback logique métier
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        
-        # Bordure de débogage pour le pot
-        painter.setPen(QPen(QColor(128, 128, 128, 128), 2, Qt.DashLine))
-        painter.drawRoundedRect(1, 1, self.width()-2, self.height()-2, 12, 12)  
-
-        #painter.drawText(self.rect(), Qt.AlignCenter, "Pot")
-        jetons = self.main_window.game.pot.amount if self.main_window else [0,0,0,0]
-        jetons_imgs = [
-            (10, "jeton_poker_V.png"),
-            (20, "jeton_poker_B.png"),
-            (50, "jeton_poker_R.png"),
-            (100, "jeton_poker_N.png"),
-        ]
-        marge_gauche = 24
-        espace_colonne = 36
-        jeton_height = 48
-        recouvrement = 8  # Augmentation du recouvrement pour empiler davantage
-        pile_max_height = self.height() - 32  # laisse de la place pour le texte
-        # Correction : calcule le nombre max de jetons par colonne pour ne jamais dépasser la hauteur
-        if jeton_height <= recouvrement:
-            max_jetons_par_col = 1
-        else:
-            max_jetons_par_col = max(1, 1 + (pile_max_height - jeton_height) // recouvrement)
-        x = marge_gauche
-        for idx, (value, img_name) in enumerate(jetons_imgs):
-            count = jetons[idx] if idx < len(jetons) else 0
-            if count == 0:
-                x += espace_colonne
-                continue
-            pix = QPixmap(os.path.join(os.path.dirname(__file__), "assets", img_name)).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            # Calcul du nombre de colonnes nécessaires pour cette couleur
-            nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
-            for col in range(nb_colonnes):
-                jetons_this_col = min(max_jetons_par_col, count - col * max_jetons_par_col)
-                for i in range(jetons_this_col):
-                    y = self.height() - 48 - (i * recouvrement)
-                    painter.drawPixmap(x, y, pix)
-                x += 28  # espace entre colonnes de la même couleur
-            x += 8  # espace supplémentaire entre couleurs
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasFormat('application/x-jeton'):
-            event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        data = event.mimeData().data('application/x-jeton').data().decode()
-        # Format: couleur:nb:joueur_idx:couleur_idx
-        parts = data.split(':')
-        couleur, nb = parts[0], int(parts[1])
-        joueur_idx = int(parts[2]) if len(parts) > 2 else None
-        couleur_idx = int(parts[3]) if len(parts) > 3 else None
-        
-        # Appel à la logique métier de la MainWindow
-        if self.main_window:
-            if couleur_idx is not None:
-                # Si l'indice de couleur est disponible, utiliser la version optimisée
-                self.main_window.miser_jetons_avec_idx(couleur_idx, nb, joueur_idx=joueur_idx)
-            else:
-                # Fallback sur l'ancienne méthode
-                self.main_window.miser_jetons(couleur, nb, joueur_idx=joueur_idx)
-        event.acceptProposedAction()
-
-
-class BetZoneWidget(QWidget):
-    def __init__(self, joueur_idx, main_window=None, parent=None):
-        super().__init__(parent)
-        self.joueur_idx = joueur_idx
-        self.main_window = main_window
-        self.setAcceptDrops(True)
-        self.setMinimumSize(220, 120)  # Hauteur réduite (150 -> 120)
-        #self.setStyleSheet("border: 2px solid black")
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        
-        # Bordure de débogage pour le pot
-        painter.setPen(QPen(QColor(128, 128, 128, 128), 2, Qt.DashLine))
-        painter.drawRoundedRect(1, 1, self.width()-2, self.height()-2, 12, 12)  
-
-        
-        # Affiche la pile de jetons misés
-        if self.main_window:
-            bet_coins = self.main_window.game.players[self.joueur_idx].bet_coins
-            jetons_imgs = [
-                (10, "jeton_poker_V.png"),
-                (20, "jeton_poker_B.png"),
-                (50, "jeton_poker_R.png"),
-                (100, "jeton_poker_N.png"),
-            ]
-            x = 8
-            jeton_size = 48
-            recouvrement = 8  # moins d'espace vertical
-            col_spacing = 5   # plus d'espace horizontal entre colonnes
-            for idx, (value, img_name) in enumerate(jetons_imgs):
-                count = bet_coins[idx] if idx < len(bet_coins) else 0
-                if count == 0:
-                    x += col_spacing
-                    continue
-                pix = QPixmap(os.path.join(os.path.dirname(__file__), "assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                # Calcul du nombre de colonnes nécessaires pour cette couleur
-                max_jetons_par_col = max(1, (self.height() - 24) // recouvrement)
-                nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
-                for col in range(nb_colonnes):
-                    jetons_this_col = min(max_jetons_par_col, count - col * max_jetons_par_col)
-                    for i in range(jetons_this_col):
-                        y = self.height() - jeton_size - (i * recouvrement)
-                        painter.drawPixmap(x + col * (jeton_size + 2), y, pix)
-                x += col_spacing + nb_colonnes * (jeton_size + 2)
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasFormat('application/x-jeton'):
-            event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        data = event.mimeData().data('application/x-jeton').data().decode()
-        parts = data.split(':')
-        couleur, nb, joueur_idx_src = parts[0], int(parts[1]), int(parts[2])
-        # Récupérer l'indice de couleur s'il est présent dans les données
-        couleur_idx = int(parts[3]) if len(parts) > 3 else None
-        # Ajoute les jetons à la mise temporaire de ce joueur
-        if self.main_window:
-            if couleur_idx is not None:
-                # Utiliser l'indice de couleur si disponible
-                self.main_window.miser_jetons_temp_avec_idx(couleur_idx, nb, joueur_idx_src, self.joueur_idx)
-            else:
-                # Fallback sur l'ancienne méthode si nécessaire
-                self.main_window.miser_jetons_temp(couleur, nb, joueur_idx_src, self.joueur_idx)
-        event.acceptProposedAction()
+from src.gui.widgets.background_widget import BackgroundWidget
+from src.gui.widgets.jeton_pile_widget import JetonPileWidget
+from src.gui.widgets.pot_widget import PotWidget
+from src.gui.widgets.bet_zone_widget import BetZoneWidget
 
 
 class MainWindow(QMainWindow):
@@ -284,21 +50,7 @@ class MainWindow(QMainWindow):
         deck_img = "back.png"
 
         # Mapping pour convertir (valeur, couleur, symbole) en nom de fichier
-        value_map = {
-            "A": "A",
-            "K": "K",
-            "Q": "Q",
-            "J": "J",
-            "10": "0",
-            "9": "9",
-            "8": "8",
-            "7": "7",
-            "6": "6",
-            "5": "5",
-            "4": "4",
-            "3": "3",
-            "2": "2",
-        }
+        value_map = {"A": "A","K": "K","Q": "Q","J": "J","10": "0","9": "9","8": "8","7": "7","6": "6","5": "5","4": "4","3": "3","2": "2",}
         suit_map = {"spade": "S", "heart": "H", "diamond": "D", "club": "C"}
 
         def card_to_filename(card):
@@ -319,17 +71,14 @@ class MainWindow(QMainWindow):
 
         def hand_widget(cards):
             w = QWidget()
-            #w.setStyleSheet(hand_border)  # Bordure jaune pour les mains
             l = QHBoxLayout(w)
             l.setSpacing(5)
             for c in cards:
                 card_lbl = card_label(c)
-                #card_lbl.setStyleSheet(card_border)  # Bordure verte pour chaque carte
                 l.addWidget(card_lbl)
             l.addStretch()
             return w
 
-        # La fonction jetons_widget a été remplacée par la classe JetonsContainerWidget
 
         def big_label(text):
             label = QLabel(text)
@@ -337,23 +86,18 @@ class MainWindow(QMainWindow):
             label.setAlignment(Qt.AlignCenter)
             return label
 
-        # Affichage du montant total d'argent sous la pile de jetons pour chaque joueur, en utilisant la méthode de Player
         # Joueur du haut
         top_player_widget = QWidget()
-        #top_player_widget.setStyleSheet(player_border)  # Bordure turquoise pour joueur du haut
         top_layout = QHBoxLayout(top_player_widget)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(20)
         top_layout.addWidget(big_label(self.game.players[2].name))
         top_layout.addWidget(hand_widget(player_hands[2]))
         jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
-        # Container directement intégré dans le widget pour éviter les layouts additionnels
         jetons_top = JetonsContainerWidget(self.game.players[2].coins, joueur_idx=2, main_window=self)
-        # Créer un QWidget pour encadrer le contenu
         jetons_top_box_w = QWidget()
         jetons_top_box_w.setMinimumWidth(220)
         jetons_top_box_w.setMinimumHeight(150)
-        #jetons_top_box_w.setStyleSheet("border: 4px solid #FF00FF;") # Bordure magenta très visible
 
         # Layout avec contenu
         container_layout = QVBoxLayout(jetons_top_box_w)
