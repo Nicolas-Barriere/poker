@@ -1,24 +1,11 @@
-from PyQt5.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QVBoxLayout,
-    QHBoxLayout,
-    QWidget,
-    QLabel,
-    QGridLayout,
-    QSizePolicy,
-    QSpacerItem,
-    QMessageBox,
-    QPushButton,
-)
+from PyQt5.QtWidgets import (QMainWindow,QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLabel,QGridLayout,QSizePolicy,QSpacerItem,QMessageBox,QPushButton)
 from PyQt5.QtCore import Qt, QMimeData, QSize
-from PyQt5.QtGui import QPixmap, QPainter, QDrag
+from PyQt5.QtGui import QPixmap, QPainter, QDrag, QPen, QColor
 import os
 import sys
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.core.poker import Game
-from widgets.jetons_container_widget import JetonsContainerWidget
+from src.gui.widgets.jetons_container_widget import JetonsContainerWidget
 
 
 class BackgroundWidget(QWidget):
@@ -131,10 +118,10 @@ class PotWidget(QWidget):
         painter = QPainter(self)
         
         # Bordure de débogage pour le pot
-        painter.setPen(Qt.darkMagenta)
-        painter.drawRect(1, 1, self.width()-2, self.height()-2)
-        
-        painter.drawText(self.rect(), Qt.AlignCenter, "Pot")
+        painter.setPen(QPen(QColor(128, 128, 128, 128), 2, Qt.DashLine))
+        painter.drawRoundedRect(1, 1, self.width()-2, self.height()-2, 12, 12)  
+
+        #painter.drawText(self.rect(), Qt.AlignCenter, "Pot")
         jetons = self.main_window.game.pot.amount if self.main_window else [0,0,0,0]
         jetons_imgs = [
             (10, "jeton_poker_V.png"),
@@ -204,9 +191,10 @@ class BetZoneWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         
-        # Bordure de débogage pour la zone de mise
-        painter.setPen(Qt.darkCyan)
-        painter.drawRect(1, 1, self.width()-2, self.height()-2)
+        # Bordure de débogage pour le pot
+        painter.setPen(QPen(QColor(128, 128, 128, 128), 2, Qt.DashLine))
+        painter.drawRoundedRect(1, 1, self.width()-2, self.height()-2, 12, 12)  
+
         
         # Affiche la pile de jetons misés
         if self.main_window:
@@ -568,9 +556,8 @@ class MainWindow(QMainWindow):
         valider_btn = QPushButton("Valider les mises")
         valider_btn.setStyleSheet("font-size: 16px; padding: 5px 20px; font-weight: bold;")  # Réduction de la taille et du padding
         valider_btn.clicked.connect(self.valider_mises)
-        main_layout.addWidget(valider_btn, alignment=Qt.AlignHCenter)
-        main_layout.setSpacing(3)  # Réduction de l'espacement vertical global
-
+        grid.addWidget(valider_btn, 0, 0, alignment=Qt.AlignLeft | Qt.AlignTop)
+    
     def closeEvent(self, event):
         event.accept()
 

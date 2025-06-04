@@ -30,13 +30,6 @@ class JetonsContainerWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         
-        # Dessiner une bordure rouge supplémentaire à l'intérieur du widget
-        painter.setPen(Qt.red)
-        painter.drawRect(2, 2, self.width()-4, self.height()-4)
-        
-        # Dessiner une bordure cyan autour de chaque zone de pile de jetons
-        painter.setPen(Qt.cyan)
-        painter.drawRect(4, 4, self.width()-8, self.height()-8)
         
         x = 0
         jeton_size = 48
@@ -46,7 +39,7 @@ class JetonsContainerWidget(QWidget):
             count = self.jetons[idx] if idx < len(self.jetons) else 0
             if count == 0:
                 continue
-            pix = QPixmap(os.path.join(os.path.dirname(__file__), "assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            pix = QPixmap(os.path.join(os.path.dirname(__file__), "../assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             # Calcul du nombre de colonnes nécessaires pour cette couleur
             max_jetons_par_col = max(1, (self.height() - 24) // recouvrement)
             nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
@@ -139,7 +132,7 @@ class JetonsContainerWidget(QWidget):
                 drag.setMimeData(mime)
                 
                 # Image pour le drag: utiliser la bonne image pour la couleur
-                img_path = os.path.join(os.path.dirname(__file__), "assets", self.jetons_imgs[clicked_idx][1])
+                img_path = os.path.join(os.path.dirname(__file__), "../assets", self.jetons_imgs[clicked_idx][1])
                 
                 # Créer une image de pile si on prend plusieurs jetons
                 if jetons_a_prendre > 1:
