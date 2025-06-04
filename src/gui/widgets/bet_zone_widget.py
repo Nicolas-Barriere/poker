@@ -9,7 +9,7 @@ class BetZoneWidget(QWidget):
         self.joueur_idx = joueur_idx
         self.main_window = main_window
         self.setAcceptDrops(True)
-        self.setMinimumSize(220, 120)  # Hauteur réduite (150 -> 120)
+        self.setMinimumSize(230, 120)  # Hauteur réduite (150 -> 120)
         #self.setStyleSheet("border: 2px solid black")
 
     def paintEvent(self, event):
@@ -40,12 +40,12 @@ class BetZoneWidget(QWidget):
                     continue
                 pix = QPixmap(os.path.join(os.path.dirname(__file__), "../assets", img_name)).scaled(jeton_size, jeton_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 # Calcul du nombre de colonnes nécessaires pour cette couleur
-                max_jetons_par_col = max(1, (self.height() - 24) // recouvrement)
+                max_jetons_par_col = max(1, self.height()// recouvrement)
                 nb_colonnes = (count + max_jetons_par_col - 1) // max_jetons_par_col
                 for col in range(nb_colonnes):
                     jetons_this_col = min(max_jetons_par_col, count - col * max_jetons_par_col)
                     for i in range(jetons_this_col):
-                        y = self.height() - jeton_size - (i * recouvrement)
+                        y = self.height() - 20 - (i * recouvrement)
                         painter.drawPixmap(x + col * (jeton_size + 2), y, pix)
                 x += col_spacing + nb_colonnes * (jeton_size + 2)
 

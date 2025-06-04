@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
-from PyQt5.QtCore import Qt, QMimeData
+from PyQt5.QtCore import Qt, QMimeData, QPoint
 from PyQt5.QtGui import QPixmap, QPainter, QDrag
 import os
 
@@ -150,7 +150,8 @@ class JetonsContainerWidget(QWidget):
                     pix = QPixmap(img_path).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                     drag.setPixmap(pix)
                 
-                drag.setHotSpot(event.pos())
+                #drag.setHotSpot(event.pos())
+                drag.setHotSpot(QPoint(20,20))
                 drag.exec_(Qt.MoveAction)
                 
             self.drag_start_pos = None
