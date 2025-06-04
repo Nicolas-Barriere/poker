@@ -7,7 +7,7 @@ class PotWidget(QWidget):
     def __init__(self, main_window=None, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(False)  # Désactive le drop sur le pot
-        self.setMinimumSize(200, 60)  # Hauteur réduite (80 -> 60)
+        self.setMinimumSize(300, 60)  # Hauteur réduite (80 -> 60)
         self.setStyleSheet("border: 2px solid #444; background: #eee;")
         self.jetons = [0, 0, 0, 0]  # [noir, rouge, bleu, vert]
         self.main_window = main_window  # pour callback logique métier
@@ -31,13 +31,13 @@ class PotWidget(QWidget):
         espace_colonne = 36
         jeton_height = 48
         recouvrement = 8  # Augmentation du recouvrement pour empiler davantage
-        pile_max_height = self.height() - 32  # laisse de la place pour le texte
+        pile_max_height = self.height()  # laisse de la place pour le texte
         # Correction : calcule le nombre max de jetons par colonne pour ne jamais dépasser la hauteur
         if jeton_height <= recouvrement:
             max_jetons_par_col = 1
         else:
             max_jetons_par_col = max(1, 1 + (pile_max_height - jeton_height) // recouvrement)
-        x = marge_gauche
+        x = 20
         for idx, (value, img_name) in enumerate(jetons_imgs):
             count = jetons[idx] if idx < len(jetons) else 0
             if count == 0:
@@ -49,7 +49,7 @@ class PotWidget(QWidget):
             for col in range(nb_colonnes):
                 jetons_this_col = min(max_jetons_par_col, count - col * max_jetons_par_col)
                 for i in range(jetons_this_col):
-                    y = self.height() - 48 - (i * recouvrement)
+                    y = self.height() - 20 - (i * recouvrement)
                     painter.drawPixmap(x, y, pix)
                 x += 28  # espace entre colonnes de la même couleur
             x += 8  # espace supplémentaire entre couleurs
